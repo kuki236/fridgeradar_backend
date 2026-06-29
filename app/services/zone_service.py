@@ -18,17 +18,39 @@ class ZoneService:
         zones = self.repo.list_by_household(household_id)
         return [self._to_response(z) for z in zones]
 
-    def create(self, household_id: str, name: str, type: str, sort_order: int, current_user: dict) -> ZoneResponse:
+    def create(
+        self,
+        household_id: str,
+        name: str,
+        type: str,
+        sort_order: int,
+        current_user: dict,
+        refrigerator_id: str | None = None,
+    ) -> ZoneResponse:
         self._check_membership(household_id, current_user["id"])
-        zone = self.repo.create(household_id=household_id, name=name, type=type, sort_order=sort_order)
+        zone = self.repo.create(
+            household_id=household_id,
+            name=name,
+            type=type,
+            sort_order=sort_order,
+            refrigerator_id=refrigerator_id,
+        )
         return self._to_response(zone)
 
-    def update(self, zone_id: str, name: str | None, type: str | None, sort_order: int | None, current_user: dict) -> ZoneResponse:
+    def update(
+        self,
+        zone_id: str,
+        name: str | None,
+        type: str | None,
+        sort_order: int | None,
+        current_user: dict,
+        refrigerator_id: str | None = None,
+    ) -> ZoneResponse:
         zone = self.repo.get_by_id(zone_id)
         if not zone:
             raise HTTPException(status_code=404, detail="Zone not found")
         self._check_membership(str(zone.household_id), current_user["id"])
-        zone = self.repo.update(zone, name, type, sort_order)
+        zone = self.repo.update(zone, name, type, sort_order, refrigerator_id)
         return self._to_response(zone)
 
     def delete(self, zone_id: str, current_user: dict) -> None:

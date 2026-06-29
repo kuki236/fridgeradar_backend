@@ -16,6 +16,14 @@ class RefreshRequest(BaseModel):
     refresh_token: str
 
 
+class UpdateUserRequest(BaseModel):
+    """Payload for PATCH /api/auth/me. RF-AUT-001: only fields that the
+    user is allowed to change from the Settings page are exposed here.
+    Email and password have dedicated flows (verification / reset).
+    """
+    full_name: str | None = Field(default=None, min_length=1, max_length=255)
+
+
 class LogoutRequest(BaseModel):
     """Optional body for POST /api/auth/logout.
 

@@ -153,12 +153,22 @@ class AlertService:
 
     @staticmethod
     def _expiry_alert_spec(status: str, days_left: int, product_name: str, expiry_date) -> dict | None:
+        # RF-COM-003: titles are i18n-ready on the frontend. We keep a clean,
+        # properly-pluralized English fallback here (no "day(s)" hack) so the
+        # data is still useful if rendered server-side. The frontend reads
+        # `days_left` from the alert and formats the title per locale.
+        def _days_phrase(n: int) -> str:
+            n = abs(n)
+            if n == 1:
+                return "1 day"
+            return f"{n} days"
+
         if status == "expired":
             return {
                 "type": "expired",
                 "severity": "critical",
                 "title": f"{product_name} has expired",
-                "message": f"Expired {abs(days_left)} day(s) ago",
+                "message": f"Expired {_days_phrase(days_left)} ago",
                 "due_at": datetime.combine(expiry_date, datetime.min.time(), tzinfo=timezone.utc),
                 "priority_score": 100,
             }
@@ -175,7 +185,7 @@ class AlertService:
             return {
                 "type": "expiring_soon",
                 "severity": "warning",
-                "title": f"{product_name} expiring in {days_left} day(s)",
+                "title": f"{product_name} expiring in {_days_phrase(days_left)}",
                 "message": f"Expires on {expiry_date}",
                 "due_at": datetime.combine(expiry_date, datetime.min.time(), tzinfo=timezone.utc),
                 "priority_score": 70 + (3 - days_left),
@@ -184,7 +194,7 @@ class AlertService:
             return {
                 "type": "expiring_soon",
                 "severity": "info",
-                "title": f"{product_name} expiring in {days_left} day(s)",
+                "title": f"{product_name} expiring in {_days_phrase(days_left)}",
                 "message": f"Expires on {expiry_date}",
                 "due_at": datetime.combine(expiry_date, datetime.min.time(), tzinfo=timezone.utc),
                 "priority_score": 40 + (7 - days_left) * 5,
@@ -198,10 +208,13 @@ class AlertService:
 
     def _to_response(self, alert) -> AlertResponse:
         product_name = None
+        days_left: int | None = None
         if alert.inventory_item_id:
             item = self.inventory_repo.get_by_id(str(alert.inventory_item_id))
             if item and item.product:
                 product_name = item.product.name
+            if item and item.expiry_date is not None:
+                days_left = (item.expiry_date - date.today()).days
         return AlertResponse(
             id=str(alert.id),
             household_id=str(alert.household_id),
@@ -216,6 +229,7 @@ class AlertService:
             priority_score=float(alert.priority_score) if alert.priority_score is not None else 0.0,
             created_at=alert.created_at,
             product_name=product_name,
+            days_left=days_left,
         )
 
 

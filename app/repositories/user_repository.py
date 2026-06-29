@@ -19,3 +19,12 @@ class UserRepository:
         self.db.commit()
         self.db.refresh(user)
         return user
+
+    def update(self, user: User, **fields) -> User:
+        """Apply a partial update to a user and persist. RF-AUT-001."""
+        for key, value in fields.items():
+            if value is not None and hasattr(user, key):
+                setattr(user, key, value)
+        self.db.commit()
+        self.db.refresh(user)
+        return user

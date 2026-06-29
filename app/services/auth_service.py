@@ -84,6 +84,21 @@ class AuthService:
             "avatar_url": user.avatar_url,
         }
 
+    def update_me(self, user_id: str, full_name: str | None) -> dict:
+        """RF-AUT-001: edit the current user's profile. Only the fields
+        that the Settings page lets the user touch are accepted. Email
+        changes go through a separate verification flow.
+        """
+        user = self.repo.get_by_id(user_id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
+            )
+        if full_name is not None:
+            user = self.repo.update(user, full_name=full_name.strip())
+        return self.get_me(user_id)
+
     def _build_token_response(self, user) -> dict:
         payload = {"sub": str(user.id)}
         return {

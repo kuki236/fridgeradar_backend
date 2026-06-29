@@ -16,6 +16,10 @@ class AlertResponse(BaseModel):
     priority_score: float = 0
     created_at: datetime
     product_name: str | None = None
+    days_left: int | None = None  # RF-COM-003: i18n-ready; the frontend
+                                  # formats the title based on the active
+                                  # locale instead of relying on a hard-coded
+                                  # English string from the backend.
 
     class Config:
         from_attributes = True

@@ -11,6 +11,7 @@ from app.schemas.auth import (
     RefreshRequest,
     RegisterRequest,
     TokenResponse,
+    UpdateUserRequest,
     UserResponse,
 )
 from app.services.auth_service import AuthService, get_auth_service, get_current_user
@@ -102,3 +103,19 @@ def logout(
 @router.get("/me", response_model=UserResponse)
 def me(current_user: dict = Depends(get_current_user)):
     return current_user
+
+
+@router.patch("/me", response_model=UserResponse)
+def update_me(
+    body: UpdateUserRequest,
+    current_user: dict = Depends(get_current_user),
+    auth: AuthService = Depends(get_auth_service),
+):
+    """RF-AUT-001: edit the authenticated user's profile. Currently only
+    `full_name` is editable from the Settings page; email/password have
+    their own flows.
+    """
+    return auth.update_me(
+        user_id=current_user["id"],
+        full_name=body.full_name,
+    )

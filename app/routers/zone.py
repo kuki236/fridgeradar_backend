@@ -28,6 +28,7 @@ def create_zone(
         type=body.type,
         sort_order=body.sort_order,
         current_user=current_user,
+        refrigerator_id=body.refrigerator_id,
     )
 
 
@@ -44,6 +45,7 @@ def update_zone(
         type=body.type,
         sort_order=body.sort_order,
         current_user=current_user,
+        refrigerator_id=body.refrigerator_id,
     )
 
 
